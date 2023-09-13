@@ -1,0 +1,50 @@
+Validating STAC Item JSON against the STAC specification is a good practice to ensure that your data adheres to the standard. 
+
+You can use the PySTAC library to perform this validation. Here's how you can include validation in your Python script:
+
+1. **Install PySTAC for Validation:**
+
+   If you haven't already installed the PySTAC library, you can do so using pip:
+
+   ```bash
+   pip install pystac
+   ```
+
+2. **Include Validation in Python Script:**
+
+   After adding the new item to your STAC catalog, you can validate it against the STAC specification using PySTAC.
+
+   ```python
+   import json
+   from pystac import Catalog, Item, Asset
+   from pystac.validation import validate_dict
+
+   # Load the existing STAC catalog
+   catalog = Catalog.from_file('datacosmos-stac.json')
+
+   # Assuming you have information about the uploaded file
+   new_item = Item(id='unique-id-for-new-item', datetime='date-time-of-the-image')
+   
+   # Add more metadata to the new item as needed
+   # Add assets to the new item (linking to the Google Cloud Storage location)
+   new_item.add_asset(key='sentinel-2', asset=Asset(href='gs://your-gcs-bucket/your-file.tif', title='Sentinel-2 Image'))
+   
+   # Add the new item to the catalog
+   catalog.add_item(new_item)
+   
+   # Validate the new item against the STAC specification
+   try:
+       validate_dict(new_item.to_dict(), schema_uri='https://schemas.stacspec.org/v1.0.0-beta.2/item-spec/json-schema/item.json')
+       print("Item is valid according to the STAC specification.")
+   except Exception as e:
+       print(f"Item validation failed: {str(e)}")
+   
+   # Save the updated catalog
+   catalog.save('datacosmos-stac.json')
+   ```
+
+   In this modified script, we import the `validate_dict` function from `pystac.validation` and use it to validate the new item's JSON representation against the STAC specification. If validation fails, it will raise an exception with an error message.
+
+Make sure to replace the `schema_uri` argument with the appropriate STAC JSON schema URL for the version you are using.
+
+This validation step helps ensure that your STAC catalog and items are compliant with the STAC specification before adding them to your catalog.
