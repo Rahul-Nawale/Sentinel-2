@@ -1,0 +1,18 @@
+<VRTDataset rasterXSize="10980" rasterYSize="10980">
+  <SRS dataAxisToSRSAxisMapping="1,2">PROJCS["WGS 84 / UTM zone 30N",GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]],PROJECTION["Transverse_Mercator"],PARAMETER["latitude_of_origin",0],PARAMETER["central_meridian",-3],PARAMETER["scale_factor",0.9996],PARAMETER["false_easting",500000],PARAMETER["false_northing",0],UNIT["metre",1,AUTHORITY["EPSG","9001"]],AXIS["Easting",EAST],AXIS["Northing",NORTH],AUTHORITY["EPSG","32630"]]</SRS>
+  <GeoTransform>  6.0000000000000000e+05,  1.0000000000000000e+01,  0.0000000000000000e+00,  5.7000000000000000e+06,  0.0000000000000000e+00, -1.0000000000000000e+01</GeoTransform>
+  <VRTRasterBand dataType="UInt16" band="1" blockXSize="1024" blockYSize="1024">
+    <Metadata domain="IMAGE_STRUCTURE">
+      <MDI key="COMPRESSION">JPEG2000</MDI>
+      <MDI key="NBITS">15</MDI>
+    </Metadata>
+    <ColorInterp>Gray</ColorInterp>
+    <SimpleSource>
+      <SourceFilename relativeToVRT="0">C:\Users\User\Documents\Sentinel-2\S2A_MSIL2A_20230905T105621_N0509_R094_T30UXB_20230905T151756\S2A_MSIL2A_20230905T105621_N0509_R094_T30UXB_20230905T151756.SAFE\GRANULE\L2A_T30UXB_A042848_20230905T105754\IMG_DATA\R10m\T30UXB_20230905T105621_B04_10m.jp2</SourceFilename>
+      <SourceBand>1</SourceBand>
+      <SourceProperties RasterXSize="10980" RasterYSize="10980" DataType="UInt16" BlockXSize="1024" BlockYSize="1024" />
+      <SrcRect xOff="0" yOff="0" xSize="10980" ySize="10980" />
+      <DstRect xOff="0" yOff="0" xSize="10980" ySize="10980" />
+    </SimpleSource>
+  </VRTRasterBand>
+</VRTDataset>
