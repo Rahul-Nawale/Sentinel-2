@@ -1,3 +1,5 @@
+### View in Code view for best experience ###
+
 Sentinel-2 Imagery Data Processing and STAC Metadata Generation
 
 Overview
