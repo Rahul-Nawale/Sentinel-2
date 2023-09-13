@@ -1,3 +1,4 @@
+### View in Code view for best experience ###
 Below are detailed instructions and documentation on how to upload your Sentinel-2 imagery data to Google Cloud Storage (GCS) using Python. This guide includes libraries, code, and step-by-step instructions for the process.
 
 ### Uploading Sentinel-2 Imagery Data to Google Cloud Storage (GCS)
@@ -37,6 +38,24 @@ from google.cloud import storage
 # Set the path to your service account key JSON file
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/path/to/your/service-account-key.json'
 ```
+
+
+#### Data is organized in the following structure:
+
+gs://your-bucket-name/stac-data/
+├── item-1/
+│   ├── item.json
+│   ├── assets/
+│   │   ├── asset-1.jpg
+│   │   ├── asset-2.tif
+│   └── ...
+├── item-2/
+│   ├── item.json
+│   ├── assets/
+│   │   ├── asset-1.jpg
+│   │   ├── asset-2.tif
+│   └── ...
+└── ..
 
 #### Code for Uploading
 
