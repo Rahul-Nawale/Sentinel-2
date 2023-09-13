@@ -1,0 +1,284 @@
+Here's a detailed documentation including links, libraries, and code instructions for each step of processing Sentinel-2 imagery data and generating STAC metadata:
+
+# Sentinel-2 Imagery Data Processing and STAC Metadata Generation
+
+Download data from https://scihub.copernicus.eu/dhus/odata/v1/Products('da0926e7-1983-4411-9143-aea8f8358c1f')/$value
+
+## Table of Contents
+
+1. [Introduction]
+2. [Prerequisites]
+3. [Step 1: Combining Bands Using GDAL]
+4. [Step 2: Converting to Cloud Optimized GeoTIFFs (COGs)]
+5. [Step 3: Creating Overview and Thumbnail Images]
+6. [Step 4: Extracting Metadata]
+7. [Step 5: Creating STAC JSON Files]
+8. [Step 6: Uploading to Google Cloud Storage]
+9. [Running the Code]
+10. [Conclusion]
+
+## Introduction
+
+This documentation provides a comprehensive guide to process Sentinel-2 imagery data and organize it into a SpatioTemporal Asset Catalog (STAC) format. STAC is a standardized way to describe geospatial assets, making data discovery, access, and analysis more efficient.
+
+We'll cover the following steps:
+1. Combining bands using GDAL.
+2. Converting images to Cloud Optimized GeoTIFFs (COGs).
+3. Generating overview and thumbnail images.
+4. Extracting metadata.
+5. Creating STAC JSON files.
+6. Uploading the data to Google Cloud Storage.
+
+## Prerequisites <a name="prerequisites"></a>
+
+Before you start, ensure you have the following prerequisites:
+
+- [GDAL](https://gdal.org/) library installed for geospatial data processing.
+- Python environment with the following libraries installed:
+  - [PIL (Python Imaging Library)](https://pillow.readthedocs.io/en/stable/) for image processing.
+  - [rasterio](https://rasterio.readthedocs.io/en/latest/) for working with geospatial data.
+
+For Windows -
+pip install pillow
+pip install rasterio
+pip install GDAL==3.7.1
+pip install google-cloud-storage
+
+For MacOS -
+pip install pillow
+pip install rasterio
+pip install GDAL==3.7.1
+pip install google-cloud-storage
+
+For Linux -
+# Install system dependencies for GDAL (assumes apt package manager)
+sudo apt-get update
+sudo apt-get install python3-pip python3-dev
+sudo apt-get install libgdal-dev
+sudo apt-get install libjpeg-dev zlib1g-dev libtiff5-dev
+
+# Install Python packages
+pip3 install pillow
+pip3 install rasterio
+pip3 install GDAL==3.7.1
+pip3 install google-cloud-storage
+
+You'll also need access to a Google Cloud Storage bucket to upload your data.
+
+
+
+## Step 1: Combining Bands Using GDAL <a name="step-1-combining-bands-using-gdal"></a>
+
+In this step, we'll combine three bands (B02, B03, B04) into an RGB composite using GDAL commands. Replace `B02`, `B03`, and `B04` with your actual band filenames.
+
+You can use Jupyter Notebook or Google Colab for best results
+
+```bash
+!gdal_translate -of VRT path\to\B02.jp2 B02.vrt
+!gdal_translate -of VRT path\to\B03.jp2 B03.vrt
+!gdal_translate -of VRT path\to\B04.jp2 B04.vrt
+!gdalbuildvrt -separate RGB.vrt B04.vrt B03.vrt B02.vrt
+```
+
+From now, we will focus on "GRANULE/{dataSourceName}IMG_DATA_R10/" folder where all the jp2 images are stored
+## Step 2: Converting to Cloud Optimized GeoTIFFs (COGs) <a name="step-2-converting-to-cloud-optimized-geotiffs-cogs"></a>
+
+In this step, we'll convert the JP2 files to COGs to optimize them for web access and analysis. We'll also set pixel data to nodata value 0.
+
+
+# Convert JP2 to COG
+import os
+from osgeo import gdal
+
+# Specify the input folder and output folder
+input_folder = '/jp2_files'  # Replace with the path to your input folder
+output_folder = 'COG files'  # This will create a new folder called "Processed files"
+error_log_file = 'error_log.txt'  # Name of the error log file
+
+# Create the output folder if it doesn't exist
+if not os.path.exists(output_folder):
+    os.makedirs(output_folder)
+
+# Initialize an error log file
+with open(error_log_file, 'w') as error_log:
+    error_log.write("Error Log:\n\n")
+
+# Loop through all files in the input folder
+for filename in os.listdir(input_folder):
+    if filename.endswith('.jp2'):  # Adjust the file extension as needed
+        input_filepath = os.path.join(input_folder, filename)
+        output_filename = os.path.splitext(filename)[0] + '.tif'  # Change the extension to .tif
+        output_filepath = os.path.join(output_folder, output_filename)
+
+        try:
+            # Open the input JP2 image
+            input_image = gdal.Open(input_filepath)
+
+            if input_image:
+                # Create an output image in GeoTIFF format
+                driver = gdal.GetDriverByName("GTiff")  # Specify the GeoTIFF driver
+                output_image = driver.CreateCopy(output_filepath, input_image, options=["COMPRESS=DEFLATE", "TILED=YES"])
+
+                # Close the input and output images
+                input_image = None
+                output_image = None
+
+                print(f"Processed: {filename}")
+            else:
+                print(f"Failed to process: {filename}")
+                # Log the error in the error log file
+                with open(error_log_file, 'a') as error_log:
+                    error_log.write(f"Failed to process: {filename}\n")
+
+        except Exception as e:
+            print(f"Error processing {filename}: {str(e)}")
+            # Log the error in the error log file
+            with open(error_log_file, 'a') as error_log:
+                error_log.write(f"Error processing {filename}: {str(e)}\n")
+
+print("Processing completed.")
+
+
+
+## Step 3: Creating Overview and Thumbnail Images
+
+Generate lower resolution overview and thumbnail images from the COGs. We'll use the Python PIL library for this task.
+
+```python
+from PIL import Image
+import rasterio
+import numpy as np
+
+def create_overview_and_thumbnail(input_filepath, output_folder):
+    with rasterio.open(input_filepath) as dataset:
+        # Read the first band as an array
+        original_image = dataset.read(1).astype(np.uint8)
+        original_image = np.dstack((original_image, original_image, original_image))
+
+        # Create an overview image (lower resolution)
+        overview_image = Image.fromarray(original_image)
+        overview_image.thumbnail((500, 500))
+        overview_image.save(os.path.join(output_folder, 'overview.webp'), 'WEBP', quality=95)
+
+        # Create a thumbnail image (maximum 500px wide or high)
+        thumbnail_image = Image.fromarray(original_image)
+        thumbnail_image.thumbnail((500, 500))
+        thumbnail_image.save(os.path.join(output_folder, 'thumbnail.webp'), 'WEBP', quality=95)
+```
+
+## Step 4: Extracting Metadata
+
+Extract metadata from the COG files using `gdalinfo`. The following Python code can be used to run `gdalinfo` and save the metadata as JSON files.
+
+```python
+import os
+import subprocess
+import json
+
+def get_metadata(tif_file):
+    gdalinfo_command = ["gdalinfo", tif_file]
+    try:
+        result = subprocess.run(
+            gdalinfo_command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        if result.returncode == 0:
+            gdalinfo_output = result.stdout
+            metadata = {
+                "file_name": os.path.basename(tif_file),
+                "gdalinfo": gdalinfo_output.splitlines(),
+                # Add more metadata fields as needed
+            }
+            return metadata
+        else:
+            print
+
+(f"Error running gdalinfo for {tif_file}: {result.stderr}")
+    except Exception as e:
+        print(f"Error running gdalinfo for {tif_file}: {str(e)}")
+    return None
+
+# Example usage:
+metadata = get_metadata("CompositeRGB.tif")
+if metadata:
+    with open("metadata.json", "w") as json_file:
+        json.dump(metadata, json_file, indent=2)
+```
+
+## Step 5: Creating STAC JSON Files
+
+Create STAC Item JSON files for each COG, adhering to the [STAC specification](https://stacspec.org/). Additionally, create a Collection JSON file and a Catalog JSON file to organize the data.
+
+```python
+import os
+import json
+from datetime import datetime
+from pystac import Catalog, Collection, Item, Asset
+
+# Create a STAC Collection
+collection = Collection(
+    id="sentinel-2",
+    title="Sentinel-2 Imagery",
+    description="Imagery data from the Sentinel-2 satellite.",
+    extent=[],
+)
+
+# Create a STAC Item for each COG
+for cog_file in cog_files:
+    # Create an Item
+    item = Item(
+        id=os.path.basename(cog_file),
+        geometry=None,  # Add geometry if available
+        bbox=None,      # Add bounding box if available
+        datetime=datetime.now(),  # Replace with actual datetime
+        properties={},  # Add custom properties if needed
+    )
+
+    # Add COG asset
+    asset = Asset(href=cog_file, media_type="image/tiff", roles=["data"])
+    item.add_asset("cog", asset)
+
+    # Add item to collection
+    collection.add_item(item)
+
+# Serialize the Collection and Items to JSON
+collection_json = collection.to_dict()
+with open("collection.json", "w") as collection_file:
+    json.dump(collection_json, collection_file, indent=2)
+```
+
+## Step 6: Uploading to Google Cloud Storage
+
+Upload the data files, including COGs, JSON files, and images, to Google Cloud Storage. You can use the [Google Cloud SDK](https://cloud.google.com/sdk) or Python libraries like `google-cloud-storage` to upload data programmatically.
+
+```python
+from google.cloud import storage
+
+def upload_to_google_cloud(local_folder, bucket_name):
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+
+    for root, _, files in os.walk(local_folder):
+        for file in files:
+            blob = bucket.blob(os.path.join(root, file))
+            blob.upload_from_filename(os.path.join(root, file))
+
+# Example usage:
+upload_to_google_cloud("your-local-folder", "your-bucket-name")
+```
+
+## Running the Code
+
+To run the code, follow these steps:
+
+1. Ensure you have the required libraries and tools installed as mentioned in the prerequisites section.
+2. Execute each step sequentially by running the provided code examples.
+3. Customize the code as needed for your specific use case, such as adjusting paths and filenames.
+
+## Conclusion
+
+This documentation provides a detailed guide on processing Sentinel-2 imagery data and organizing it into a SpatioTemporal Asset Catalog (STAC) format. By following these steps, you can efficiently manage and share geospatial data, making it more accessible for various applications and analysis.
+
+Please replace placeholders like file paths, bucket names, and datetime values with your specific project details.
