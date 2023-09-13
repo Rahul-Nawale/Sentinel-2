@@ -1,0 +1,127 @@
+Below are detailed instructions and documentation on how to upload your Sentinel-2 imagery data to Google Cloud Storage (GCS) using Python. This guide includes libraries, code, and step-by-step instructions for the process.
+
+### Uploading Sentinel-2 Imagery Data to Google Cloud Storage (GCS)
+
+#### Overview
+
+In this guide, we'll walk through the steps to upload Sentinel-2 imagery data to Google Cloud Storage. We will use Python and the `google-cloud-storage` library for this purpose.
+
+#### Prerequisites
+
+Before you begin, ensure you have the following prerequisites in place:
+
+1. Google Cloud Platform (GCP) Account: You must have a GCP account. If you don't have one, you can sign up for a free trial [here](https://cloud.google.com/free).
+
+2. Google Cloud Storage Bucket: Create a GCS bucket where you will store your Sentinel-2 data. You can do this through the [Google Cloud Console](https://console.cloud.google.com/storage/browser) or using the `gsutil` command-line tool.
+
+3. Service Account Key: Generate a service account key for authentication. Instructions for creating a service account key can be found [here](https://cloud.google.com/iam/docs/creating-managing-service-account-keys).
+
+4. Python Environment: Make sure you have Python installed on your system.
+
+#### Installation
+
+Install the required Python libraries:
+
+```bash
+pip install google-cloud-storage
+```
+
+#### Authentication
+
+Set up authentication by providing your service account key JSON file. You can set an environment variable or specify it in your code.
+
+```python
+import os
+from google.cloud import storage
+
+# Set the path to your service account key JSON file
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/path/to/your/service-account-key.json'
+```
+
+#### Code for Uploading
+
+Here's a Python script for uploading your Sentinel-2 imagery data to GCS:
+
+```python
+import os
+from google.cloud import storage
+
+def upload_to_gcs(bucket_name, source_file_path, destination_blob_name):
+    """Uploads a file to Google Cloud Storage."""
+    # Initialize the GCS client
+    storage_client = storage.Client()
+
+    # Get the bucket where you want to upload the file
+    bucket = storage_client.bucket(bucket_name)
+
+    # Create a blob (object) in the bucket
+    blob = bucket.blob(destination_blob_name)
+
+    # Upload the file to the blob
+    blob.upload_from_filename(source_file_path)
+
+    print(f"File {source_file_path} uploaded to {destination_blob_name} in bucket {bucket_name}.")
+
+# Example usage
+import os
+from google.cloud import storage
+
+# Replace with your Google Cloud Storage bucket name
+bucket_name = "sentinel-2"
+
+# Local directory where your data is stored
+local_data_directory = r"C:\Users\User\COG files\New folder"
+
+# Path to your service account key JSON file
+key_file_path = r"C:\Users\User\Downloads\civic-kayak-398904-3c5c2f482716.json"
+
+def upload_to_gcs(bucket_name, source_file_path, destination_blob_name):
+    """Uploads a file to Google Cloud Storage."""
+    # Initialize the GCS client with your key file
+    storage_client = storage.Client.from_service_account_json(key_file_path)
+
+    # Get the bucket where you want to upload the file
+    bucket = storage_client.bucket(bucket_name)
+
+    # Create a blob (object) in the bucket
+    blob = bucket.blob(destination_blob_name)
+
+    # Upload the file to the blob
+    blob.upload_from_filename(source_file_path)
+
+    print(f"File {source_file_path} uploaded to {destination_blob_name} in bucket {bucket_name}.")
+
+def upload_assets_to_gcs(bucket_name, local_data_directory):
+    """Uploads TIFF files, overview.webp, thumbnail.webp, and item.json files to GCS."""
+    # Iterate through the local data directory
+    for root, _, files in os.walk(local_data_directory):
+        for filename in files:
+            # Determine the GCS destination path based on local directory structure
+            relative_path = os.path.relpath(os.path.join(root, filename), local_data_directory)
+            gcs_destination_blob_name = os.path.join("stac-data", relative_path.replace(os.sep, "/"))
+
+            # Upload the file to GCS
+            upload_to_gcs(bucket_name, os.path.join(root, filename), gcs_destination_blob_name)
+
+if __name__ == "__main__":
+    # Upload assets to GCS
+    upload_assets_to_gcs(bucket_name, local_data_directory)
+
+
+Replace the `bucket_name`, `source_file_path`, and `destination_blob_name` with your specific values.
+
+#### Running the Code
+
+Run the Python script to upload your Sentinel-2 imagery data to GCS:
+
+```bash
+python your-upload-script.py
+```
+
+#### Verification
+
+You can verify the successful upload by checking your GCS bucket through the [Google Cloud Console](https://console.cloud.google.com/storage/browser).
+
+#### Conclusion
+
+This guide covered the steps to upload Sentinel-2 imagery data to Google Cloud Storage using Python. You can automate this process for multiple files and integrate it into your data processing workflow.
