@@ -1,0 +1,67 @@
+Since I don't have access to DataCosmos or your specific environment, I can provide you with detailed instructions on how to achieve this task.
+**Uploading Files to Google Cloud Storage:**
+
+1. **Install and Authenticate Google Cloud SDK:**
+
+   - If you haven't already, install the Google Cloud SDK by following the instructions here: https://cloud.google.com/sdk/install
+
+   - Authenticate the SDK using `gcloud auth login` and follow the prompts to log in to your Google Cloud account.
+
+2. **Create a Google Cloud Storage Bucket:**
+
+   - Use the Google Cloud Console (https://console.cloud.google.com/) to create a new bucket where you want to store your data.
+
+3. **Upload Sentinel-2 Imagery:**
+
+   - Assuming you have a directory with your Sentinel-2 imagery files (e.g., TIFF files), you can use the following command to upload them to your Google Cloud Storage bucket:
+
+     ```bash
+     gsutil -m cp /path/to/sentinel2/files/*.tif gs://your-gcs-bucket/
+     ```
+
+   Replace `/path/to/sentinel2/files/` with the actual path to your Sentinel-2 files and `your-gcs-bucket` with the name of your Google Cloud Storage bucket.
+
+**Adding Data to STAC Catalog:**
+
+1. **Create or Retrieve STAC Catalog:**
+
+   - If you don't have an existing STAC catalog, you can create one using Python and the PySTAC library (https://pystac.readthedocs.io/en/latest/). Install PySTAC using `pip install pystac`.
+
+   - Alternatively, retrieve the existing STAC catalog JSON file if you already have one.
+
+2. **Python Script to Update STAC Catalog:**
+
+   - Write a Python script to update your STAC catalog. This script should:
+
+     - Read the existing STAC catalog JSON into a Python data structure (e.g., a dictionary).
+
+     - For each uploaded Sentinel-2 image, create a new STAC item in the STAC format, including the required metadata (e.g., `datetime`, `assets`).
+
+     - Append the new STAC item to the `features` array in the STAC catalog.
+
+     - Write the updated data structure back to the STAC catalog JSON file.
+
+   Here's a simplified Python script outline:
+
+   ```python
+   import json
+   from pystac import Catalog, Item, Asset
+
+   # Load the existing STAC catalog
+   catalog = Catalog.from_file('datacosmos-stac.json')
+
+   # Assuming you have information about the uploaded file
+   new_item = Item(id='unique-id-for-new-item', datetime='date-time-of-the-image')
+   
+   # Add more metadata to the new item as needed
+   # Add assets to the new item (linking to the Google Cloud Storage location)
+   new_item.add_asset(key='sentinel-2', asset=Asset(href='gs://your-gcs-bucket/your-file.tif', title='Sentinel-2 Image'))
+   
+   # Add the new item to the catalog
+   catalog.add_item(new_item)
+   
+   # Save the updated catalog
+   catalog.save('datacosmos-stac.json')
+   ```
+
+placeholders like `/path/to/sentinel2/files/` and `your-gcs-bucket` with your actual file paths and bucket names.
