@@ -1,0 +1,64 @@
+{
+    "id": "sentinel-2A",
+    "stac_version": "1.0.0",
+    "title": "Sentinel-2A Imagery Collection",
+    "description": "Collection of high-resolution satellite imagery of orbit (relative) 94 from the Sentinel-2A mission.",
+    "license": "ISC",
+    "extent": {
+        "spatial": {
+            "bbox": [
+                [
+                    -0.9836426,
+                    50.42629366061962,
+                    0.017025008525814,
+                    51.423790282941056
+                ]
+            ]
+        },
+        "temporal": {
+            "interval": [
+                [
+                    "2023-09-05T10:56:21.024Z",
+                    "2023-09-05T10:56:21.024Z"
+                ]
+            ]
+        }
+    },
+    "summaries": {
+        "license": [
+            "ISC"
+        ],
+        "providers": [
+            {
+                "name": "Sentinel-2A Mission",
+                "roles": [
+                    "producer"
+                ],
+                "url": "https://tinyurl.com/bdfxsdp6",
+                "description": "Provider of Sentinel-2A satellite imagery."
+            },
+            {
+                "name": "European Space Agency (ESA)",
+                "roles": [
+                    "licensor"
+                ],
+                "url": "https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-2",
+                "description": "Licensor of Sentinel-2A imagery data."
+            },
+            {
+                "name": "Open Cosmos",
+                "roles": [
+                    "processor"
+                ],
+                "url": "https://www.open-cosmos.com/",
+                "description": "Processor of Sentinel-2A imagery data for demonstration purpose to examine candidates."
+            }
+        ]
+    },
+    "links": [
+        {
+            "rel": "self",
+            "href": "https://storage.cloud.google.com/sentinel-2/stac-data%5Ccollection/collection.json"
+        }
+    ]
+}
